@@ -4,48 +4,56 @@ import argparse
 import re
 
 
-class ValidateInt(argparse.Action):
+# super class
+class Validate(object):
+
+    def __call__(self, parser, namespace, values):
+        if re.match(self.pattern, values):
+            print 'Everything is ok. %s - %s.' % (values, self.element)
+        else:
+            print '%s - is not %s. It\'s a bad sign! :)' % (values, self.element)
+
+
+class ValidateInt(Validate, argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if type(values) is int:
-            print 'Everything is ok. %r - integer.' % values
-        else:
-            print '%r - is not integer. It\'s a bad sign! :)' % values
+        # regular expression for integer
+        self.pattern = '^[-]*[1-9]\d*$'
+        self.element = 'integer'
+        super(ValidateInt, self).__call__(parser, namespace, values)
 
 
-class ValidateFloat(argparse.Action):
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        pattern = '(((-[1-9])([0-9]+)?)|(([1-9]+)?[0-9]))\.[0-9]+'
-        if re.match(pattern, values):
-            print 'Everything is ok. %r - float.' % values
-        else:
-            print '%r - is not float. It\'s a bad sign! :)' % values
-
-
-class ValidateEmail(argparse.Action):
+class ValidateFloat(Validate, argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
-        pattern = '^([a-z0-9_-]+\.)*[a-z0-9_-]+@[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,6}$'
-        if re.match(pattern, values):
-            print 'Everything is ok. %r - valid email.' % values
-        else:
-            print '%r - is not valid email. It\'s a bad sign! :)' % values
+        # regular expression for float
+        self.pattern = '(((-[1-9])([0-9]+)?)|(([1-9]+)?[0-9]))\.[0-9]+'
+        self.element = 'float'
+        super(ValidateFloat, self).__call__(parser, namespace, values)
 
 
-class ValidateIsoDate(argparse.Action):
+class ValidateEmail(Validate, argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
-        pattern = '((.*)(-[0-9]{8})?)'
-        if re.match(pattern, values):
-            print 'Everything is ok. %r - valid iso date.' % values
-        else:
-            print '%r - is not valid iso date. It\'s a bad sign! :)' % values
+        # regular expression for email
+        self.pattern = '^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$'
+        self.element = 'valid email'
+        super(ValidateEmail, self).__call__(parser, namespace, values)
+
+
+class ValidateIsoDate(Validate, argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # regular expression for iso date
+        # YYYY-MM-DD
+        self.pattern = '([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})'
+        self.element = 'iso date'
+        super(ValidateIsoDate, self).__call__(parser, namespace, values)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--int', dest='checkInt', type=int, action=ValidateInt,
+    parser.add_argument('--int', dest='checkInt', action=ValidateInt,
                         help='Check if argument is integer')
     parser.add_argument('--float', dest='checkFloat', action=ValidateFloat,
                         help='Check if argument is float')
